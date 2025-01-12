@@ -56,7 +56,7 @@ This grade of this course is largely determined through three components:
 ###  5.1. Homework
 - Homework 1: due in week 4
 - Homework 2: due in week 8
-- Homework 3: due in week 11
+- Homework 3: due in week 12
 
 Students are given additional 48 hours grace period for late submission and will not receive any grade penalty. However, submissions after 48 hours grace period will not be considered and students will loose 15 points of their final grade.
 
