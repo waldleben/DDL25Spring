@@ -76,8 +76,8 @@ At the end of each project phase we will conduct a short interview (20 minutes p
 **Week**|**Lecture Topic**|**Lab Topic**|**Assignment Due**
 :-----|:-----|:-----|:-----
 Week 1 (Feb 17) | Distributed Machine Learning I | No Lab
-Week 2 (Feb 24) | Memory and Acceleration Technology | Setup & Intro
-Week 3 (Mar 3) | Federated Learning I (Horizontal) | FedSGD & FedAvg
+Week 2 (Feb 24) | Memory and Acceleration Technology | FedSGD & FedAvg
+Week 3 (Mar 3) | Federated Learning I (Horizontal) | Pipeline Parellelism
 Week 4 (Mar 10) | Federated Learning II (Vertical) | HW1 | HW1
 Week 5 (Mar 17) | Heterogeneous and Multi-modality FL | VFL | Project proposal
 Week 6 (Mar 24) | Federated Generative AI |  Generative Modelling
