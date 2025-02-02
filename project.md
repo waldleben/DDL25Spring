@@ -3,7 +3,7 @@
 
 Your project accounts for 70% of your final grade.
 
-Here, you need to first reproduce one of the one of  papers in the list using a framework of your choice.
+Here, you need to first reproduce one of the following  papers in the list using a framework of your choice.
 
 Secondly, you need to come up with solutions to further improve the performance metrics of your choice. Your final grade depends on (i) the rigorousness and correctness of your reproduction experiments, (ii) the percentage of performance improvement of your solution compared to the original paper, (iii) the readability of your report.
 
