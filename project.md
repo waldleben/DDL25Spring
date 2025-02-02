@@ -28,7 +28,7 @@ All the documents need to be submitted via the ILISAS. Exact due dates are on th
 
 
 
-### Final project report
+## Final project report
 
 The **final** group project report should be ** 7-8 pages**.
 Here is the report template. https://www.overleaf.com/latex/templates/icml2025-template/dhxrkcgkvnkt
@@ -53,7 +53,7 @@ In addition, your report must also include a figure that graphically depicts a m
 
 The final project report is graded in combination with the project interview. The interview will be an academic discussion about the executed project.
 
-## Interviews
+### Interviews
 
 The 20 minute interviews per group will be scheduled on the last lecture.
 
