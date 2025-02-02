@@ -28,10 +28,6 @@ All the documents need to be submitted via the ILISAS. Exact due dates are on th
 
 
 
-
-
-
-
 ### Final project report
 
 The **final** group project report should be ** 7-8 pages**.
