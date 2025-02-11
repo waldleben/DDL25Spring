@@ -51,18 +51,18 @@ for itr in range(5_000):
         out = next(iter_ds)
         out = out.to(device)
         out = net.embed(out)
-        
+
         dist.send(out.to("cpu"),1)
-   
+
     elif rank == 1:
-        
+
         inp_batch = torch.empty((batch_size,seq_l,dmodel))
         dist.recv(inp_batch,0)
         with torch.no_grad():
             inp_batch = inp_batch.to(device)
             inp_batch.requires_grad_()
             inp_batch.retain_grad()
-            
+
         out = net(inp_batch)
         dist.send(out.to("cpu"),2)
 
@@ -74,12 +74,12 @@ for itr in range(5_000):
             inp_batch = inp_batch.to(device)
             inp_batch.requires_grad_()
             inp_batch.retain_grad()
-            
+
         logits = net(inp_batch)
         loss = causalLLMLoss(logits,target,tokenizer.vocab_size)
         print(loss.item())
         loss.backward()
-    
+
 
     # BACKWARD PASS:
     if rank == 2:
@@ -94,9 +94,6 @@ for itr in range(5_000):
         dist.recv(inp_grad,1)
         out.backward(inp_grad.to(device))
 
-    
+
     optim.step()
     torch.cuda.empty_cache()
-
-
-

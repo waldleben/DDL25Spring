@@ -26,7 +26,7 @@ tokenizer = SPTokenizer()
 # make the model
 net = LLama(CausalLLama,tokenizer.vocab_size,dmodel=dmodel,num_heads=num_heads,
                 device=device, n_layers=n_layers, ctx_size=seq_l,padding_idx=tokenizer.pad_id)
-ds = TinyStories(tokenizer,batch_size=batch_size, seq_l=seq_l,skip=rank*3000) # skip so we can have different things
+ds = TinyStories(tokenizer,batch_size=batch_size, seq_l=seq_l,skip=rank*5000) # skip so we can have different things
 # we can iterate the dataset with:
 iter_ds = iter(ds)
 
@@ -43,7 +43,7 @@ for itr in range(5_000):
     x = next(iter_ds)
     target = x.clone().detach()
     x = x.to(device)
-    
+
     x = net(x)
     loss = causalLLMLoss(x,target,tokenizer.vocab_size)
     # log the loss:
@@ -55,7 +55,7 @@ for itr in range(5_000):
     tmp = []
     for param in net.parameters():
         if param == None:
-            tmp.append(torch.zeros_like(param).view(-1))                      
+            tmp.append(torch.zeros_like(param).view(-1))
             continue
         tmp.append(param.view(-1))
         param.grad = None
@@ -65,7 +65,3 @@ for itr in range(5_000):
     with torch.no_grad():
         for i, param in enumerate(net.parameters()):
             param = tmp[i].view(sizes[i]).to(device)/world_size # average
-    
-
-
-

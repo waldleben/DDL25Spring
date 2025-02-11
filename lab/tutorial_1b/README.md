@@ -4,7 +4,7 @@ This repo hosts all relevant files about the distributed ML Lab in Neuchatel.
 
 ## Building LLMs
 
-For this lab we will use a library to help us build Large Language Models and train them easily. You can download [simplellm](https://github.com/NikolayBlagoev/simplellm/tree/main) via `git clone` and then install with `pip install .`
+For this lab we will use a library to help us build Large Language Models and train them easily. It should already be installed if you followed the overall setup for labs.
 
 Let us set up a simple model and dataset which we will use throughout this lab (the file can be found in [primer/intro.py](primer/intro.py))
 ```python
@@ -41,14 +41,6 @@ for itr in range(5_000):
     print(itr,loss.item())
     loss.backward()
     optim.step()
-
-
-
-
-
-
-
-
 ```
 
 Throughout this lab we will be expanding this implementation
@@ -58,9 +50,9 @@ Throughout this lab we will be expanding this implementation
 As we all remember, when performing SGD we do the following steps:
 
 1. Run a forward pass through our model for a given sample $x$
-2. Compute the loss $L(x,y)$ given some target $y$ 
-3. Compute the gradient per weight $ \frac{\delta y}{\delta W}  $
-4. Update the weights with $ W = W - \lambda \frac{\delta y}{\delta W}$ where $\lambda$ is the learning rate
+2. Compute the loss $L(x,y)$ given some target $y$
+3. Compute the gradient per weight $\frac{\delta y}{\delta W}$
+4. Update the weights with $W = W - \lambda \frac{\delta y}{\delta W}$ where $\lambda$ is the learning rate
 
 When we use a batch of size larger than 1 the same process is performed, except that the gradient upate is the average across all the gradients for the different samples. This gives less noisy updates over time. The larger the batch is usually better (though there are things such as TOO LARGE of a batch, but in the context of LLMs this is hardly ever the case).
 
@@ -68,13 +60,13 @@ When we use a batch of size larger than 1 the same process is performed, except 
 
 Previously we learnt about federated learning as a means of preserving the privacy of each participant. Data Parallelism (DP) is pretty much the same as Federated Learning, except the concern is about throughput and not privacy, thus making our lives a lot easier when implementing DP solutions.
 
-As we mentioned the larger your batch, usually the better. But with large models, the GPU memory is usually your bottleneck. So you quite often can't even do a batch of more than 2 samples. This however would make our gradient updates too noisy and lead to poor convergence. 
+As we mentioned the larger your batch, usually the better. But with large models, the GPU memory is usually your bottleneck. So you quite often can't even do a batch of more than 2 samples. This however would make our gradient updates too noisy and lead to poor convergence.
 
 A very obvious solution is - if one GPU is not enough, let's use multiple. This is usually how problems in distributed systems are solved. Similar to federated learning, we will have multiple nodes (or workers or devices if you prefer) perform training locally on some subset of shared data and then at the end of an iteration, average their gradients, before performing an update step. It is easy to see how this is equivalent to increasing your batch size in batched SGD. In the context of DP, each device is said to train a mini-batch, with the global size of the batch being the summation of all the mini-batches. So, if you have 4 devices, each training with a mini-batch of size 4 samples, your global batch size is 16 and is equivalent to doing batched SGD with batch size of 16.
 
 In DP all workers perform their local iteration in parallel, thus you can have a speed up with the number of devices. However, you pay with an increase in communication, as each device will need to communicate with every other their updates during the aggregation phase. There is extensive literature on optimising this phase, as it can be incredibly costly.
 
-Let us see how to implement this in torch. First we need to set up our group of workers that will be communicating with each other. PyTorch provides an abstraction for this for you with their [torch.distributed](https://pytorch.org/docs/stable/distributed.html) package. They support three backends - gloo, nccl, and mpi. Use gloo if you want to do cpu to cpu communication (and mpi if gloo is failing). Use nccl if you are doing gpu to gpu communication. Fair warning, nccl does not allow a gpu to itself communication so if you are hosting multiple nodes on the same gpu device, nccl will not work. Therefore for our demos we will be using the gloo backend. In practice, however, you should use nccl as it has significantly faster throughput.
+Let us see how to implement this in torch. First we need to set up our group of workers that will be communicating with each other. PyTorch provides an abstraction for this for you with their [torch.distributed](https://pytorch.org/docs/stable/distributed.html) package. They support three backends - gloo, nccl, and mpi. Use gloo if you want to do cpu to cpu communication (and mpi if gloo is failing). Use nccl if you are doing gpu to gpu communication. Fair warning, nccl does not allow a gpu to communication with itself, so if you are hosting multiple nodes on the same gpu device, nccl will not work. Therefore for our demos we will be using the gloo backend. In practice, however, you should use nccl as it has significantly faster throughput.
 
 When initialising the distributed communication you need to provide 5 things to torch - the desired backend, the world size (how many devices will participate), the rank of the current device (unique per device in the range of $[0,world size]$), the master address and port. The last two are used when devices need to discover each other. One device (the master) will need to bind to the given address and listen for incoming messages. To do it in code is quite simple:
 
@@ -88,7 +80,7 @@ os.environ["MASTER_PORT"] = "29500"
 dist.init_process_group("gloo", rank=rank, world_size=3)
 ```
 
-The process will block until 3 different processes reach the init_process_group statement. 
+The process will block until 3 different processes reach the init_process_group statement.
 
 The next thing we need to modify is at the weight update step. We need to synchronise across all devices. Thus we will modify that part of our primer to:
 
@@ -97,7 +89,7 @@ dist.barrier() # wait for everyone
 tmp = []
 for param in net.parameters():
     if param.grad == None:
-        tmp.append(torch.zeros_like(param).view(-1))                      
+        tmp.append(torch.zeros_like(param).view(-1))
         continue
     tmp.append(param.grad.view(-1))
     param.grad = None
@@ -155,19 +147,19 @@ for itr in range(5_000):
     x = next(iter_ds)
     target = x.clone().detach()
     x = x.to(device)
-    
+
     x = net(x)
     loss = causalLLMLoss(x,target,tokenizer.vocab_size)
     # log the loss:
     print(itr,loss.item())
     loss.backward()
-    
+
     dist.barrier() # wait for everyone
-    
+
     tmp = []
     for param in net.parameters():
         if param.grad == None:
-            tmp.append(torch.zeros_like(param,device="cpu").view(-1))                      
+            tmp.append(torch.zeros_like(param,device="cpu").view(-1))
             continue
         tmp.append(param.grad.view(-1))
         param.grad = None
@@ -186,7 +178,7 @@ for itr in range(5_000):
 
 As we learnt in Federated Learning, it is also possible to synchronise on model weights, rather than on gradients. The modification to the above code to accomodate is simple and can be found in [intro_DP_WA.py](DP/weight_aggr/intro_DP_WA.py)
 
-Torch provides a nice abstraction to our own implementation for [Data Parallel Training](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html#torch.nn.parallel.DistributedDataParallel). From personal experience, the timing between the two is almost identical. It is also a bit more limiting as it only synchronises gradients and not weights and has a few quirks to it. 
+Torch provides a nice abstraction to our own implementation for [Data Parallel Training](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html#torch.nn.parallel.DistributedDataParallel). From personal experience, the timing between the two is almost identical. It is also a bit more limiting as it only synchronises gradients and not weights and has a few quirks to it.
 
 ### What to remember
 
@@ -203,7 +195,7 @@ We learnt about data parallelism. But what if we cannot fit our model on a singl
 
 One thing we can exploit about traditional models is that they are very modular - groups of layers performing similar operations. This is especially true for Large Language Models, where the same sub-architecture of a transformer block is repeated a number of times throughout the model. Each block performs roughly the same operations, communicates the same size of data, and has similar memory requirements. Thus, what we can do, is separate groups of these similar modules across different device and communicate the activations between them. Each device has a sequence of layers ($L_i, L_{i+1}.., L_{i+\delta} \in L$) from the model and no two devices have the same layers (the divisions are non-overlapping). Each device thus constitutes a stage $S$. Devices in one stage $S_i$ receive the activations from the previous $S_{i-1}$ and send them to the next one $S_{i+1}$. Thus all stages form a pipeline. From an outside perspective, a pipeline behaves as one single centralised model - nothing about the actual training changes. As we will see later, we can have multiple devices in a stage, each device communicating with a different device from the previous and the next stage to form multiple pipelines.
 
-The communication flow is fairly straight forward - the first stage gets the data ```x = next(iter_ds)```, performs the embedding ```x = embed(x)```, runs the activations through the local layers it has ```x = layers(x)```, and sends the last output to the next device ```send(x,rank+1)```. Each subsequent device receives some activations ```x = receive(rank-1)```, processes them internally, and sends them to the next device. Once the last device has ran the activations through its local sub-section of the model, it performs the de-embedding, and computes the loss. This constitutes a forward pass. Then it runs a local backwards pass, and sends the gradient of the input it received to the previous device ```send(x.grad,rank-1)```. This continues from device to device in reverse order of the forward pass, until we reach again the first device. All devices then perform an optimisation step and the next iteration begins. 
+The communication flow is fairly straight forward - the first stage gets the data ```x = next(iter_ds)```, performs the embedding ```x = embed(x)```, runs the activations through the local layers it has ```x = layers(x)```, and sends the last output to the next device ```send(x,rank+1)```. Each subsequent device receives some activations ```x = receive(rank-1)```, processes them internally, and sends them to the next device. Once the last device has ran the activations through its local sub-section of the model, it performs the de-embedding, and computes the loss. This constitutes a forward pass. Then it runs a local backwards pass, and sends the gradient of the input it received to the previous device ```send(x.grad,rank-1)```. This continues from device to device in reverse order of the forward pass, until we reach again the first device. All devices then perform an optimisation step and the next iteration begins.
 
 
 The implementation of the above is sligthly more annoying, due to the possibility of a deadlock that we will run into later. In the single forward, single backward case that we described above, we can utilise the distributed pytorch functions ```send``` and ```recv```, to achieve the following:
@@ -261,18 +253,18 @@ for itr in range(5_000):
         out = next(iter_ds)
         out = out.to(device)
         out = net.embed(out)
-        
+
         dist.send(out.to("cpu"),1)
-   
+
     elif rank == 1:
-        
+
         inp_batch = torch.empty((batch_size,seq_l,dmodel))
         dist.recv(inp_batch,0)
         with torch.no_grad():
             inp_batch = inp_batch.to(device)
             inp_batch.requires_grad_()
             inp_batch.retain_grad()
-            
+
         out = net(inp_batch)
         dist.send(out.to("cpu"),2)
 
@@ -284,12 +276,12 @@ for itr in range(5_000):
             inp_batch = inp_batch.to(device)
             inp_batch.requires_grad_()
             inp_batch.retain_grad()
-            
+
         logits = net(inp_batch)
         loss = causalLLMLoss(logits,target,tokenizer.vocab_size)
         print(loss.item())
         loss.backward()
-    
+
 
     # BACKWARD PASS:
     if rank == 2:
@@ -304,7 +296,7 @@ for itr in range(5_000):
         dist.recv(inp_grad,1)
         out.backward(inp_grad.to(device))
 
-    
+
     optim.step()
     torch.cuda.empty_cache()
 
@@ -337,9 +329,9 @@ A lot of contemporary research [[2]](https://arxiv.org/abs/2007.01045) [[3]](htt
 
 ![Dapple Execution](imgs/dapple.jpg)
 
-While in this case the execution time being roughly the same, the memory requirements are signfiicantly lower compare to GPipe.
+While in this case the execution time being roughly the same, the memory requirements are signfiicantly lower compare to GPipe, which is similar to the approach mentioned above.
 
-Implementing pipeline parallelism with microbatches is left as homework and can be implemented in the [intro_PP_microbatches.py](PP/microbatches/intro_PP_microbatches.py) file. Be ware of the possibility of deadlocks - due to how gloo operates it is possible to deadlock by having device 1 sending $B_2$ to device 2 in the forward pass and simultaneously, device 2 sending $B_1$ in the backward pass. Since both operations will await a corresponding receive the training will stop indefinitely.
+Implementing pipeline parallelism with microbatches is left as homework.
 
 ### Intuition on how does micro-batching work
 
@@ -356,5 +348,4 @@ Due to the sheer sizes of Large Language Models and the datasets we train them o
 
 *image courtesy of [DTFM](https://arxiv.org/abs/2206.01288)*
 
-As homework you can attempt to create such a training with everything we learnt so far by creating 2 pipelines each of 3 stages running sequentiall 3 micro-batches.
-
+As homework you can attempt to create such a training with everything we learnt so far.

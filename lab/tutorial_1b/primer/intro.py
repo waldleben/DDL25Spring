@@ -31,6 +31,3 @@ for itr in range(5_000):
     print(itr,loss.item())
     loss.backward()
     optim.step()
-
-
-
