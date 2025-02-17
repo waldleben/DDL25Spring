@@ -170,9 +170,6 @@ for itr in range(5_000):
         param.grad = tmp[i].view(sizes[i]).to(device)/world_size # average
     optim.step()
     torch.cuda.empty_cache()
-
-
-
 ```
 
 
@@ -186,7 +183,7 @@ Data Parallelism is useful when you want to increase your batch size by training
 
 ### A small note on optimizers
 
-So far we have used the vanilla SGD optimizer (no momentum, no dampening, no nothing). This is purely so that we can create a comparison between Weight Aggregation and Gradient Aggregation. Both have their strengths, but a major one of Gradient Aggregation is that since the gradients will be identical across all devices, we can use better optimizers like Adam, without the need to synchronise the states of the optimizer. This is trivial to see, since the optimizer state is updated deterministically and depends only on the gradient of each parameter.
+We have seen Weight Aggregation and Gradient Aggregation as methods for synchronising in Data Parallel training. Both have their strengths, but a major one of Gradient Aggregation is that since the gradients will be identical across all devices, we can use better optimizers like Adam, without the need to synchronise the states of the optimizer. This is trivial to see, since the optimizer state is updated deterministically and depends only on the gradient of each parameter. With weight aggregation this is harder to achieve.
 
 
 ## Model Parallelism
@@ -299,10 +296,6 @@ for itr in range(5_000):
 
     optim.step()
     torch.cuda.empty_cache()
-
-
-
-
 ````
 
 Code is also alvailable in [intro_PP_1F1B.py](PP/1F1B/intro_PP_1F1B.py).
