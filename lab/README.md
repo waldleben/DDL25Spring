@@ -3,8 +3,8 @@
 The lab consists of three parts, each with two group tutorial sessions given by the TAs and one individual homework for students to solve.
 
 - Part 1: Federated & Distributed Learning
-    - [Tutorial 1A: Horizontal FL](tutorial-1a/)
-    - [Tutorial 1B: Data & Model Parallelism](tutorial-1b/)
+    - [Tutorial 1A: Horizontal FL](tutorial_1a/)
+    - [Tutorial 1B: Data & Model Parallelism](tutorial_1b/)
     - [Homework 1](homework-1.ipynb)
 - Part 2: (Vertical) Federated Learning on Generative Models
     - Tutorial 2A: Generative FL
