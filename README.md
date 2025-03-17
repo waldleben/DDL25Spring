@@ -59,7 +59,7 @@ The grade of this course is determined through three components:
 - Homework 2: due in week 8
 - Homework 3: due in week 12
 
-Students are given an additional 48-hour grace period for late submission without receiving any grade penalty. However, submissions after the grace period are not considered, and students will have the corresponding 10% of their final grade set as 0.
+Submissions after the grace period are not considered, and students will have the corresponding 10% of their final grade set as 0.
 
 ### 5.2. Group projects
 
