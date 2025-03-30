@@ -1,0 +1,6 @@
+WE HAVE TOKENIZER
+loaded tokenizer
+<sentencepiece.SentencePieceProcessor; proxy of <Swig Object of type 'sentencepiece::SentencePieceProcessor *' at 0x77a0ebaca400> >
+DONE
+TINYSTORIES DATASET LOADED...
+10.549697875976562
